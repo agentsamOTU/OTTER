@@ -82,50 +82,6 @@ bool initGLAD() {
 
 GLuint shader_program;
 
-bool loadShaders() {
-	// Read Shaders from file
-	std::string vert_shader_str;
-	std::ifstream vs_stream("shaders/vertex_shader.glsl", std::ios::in);
-	if (vs_stream.is_open()) {
-		std::string Line = "";
-		while (getline(vs_stream, Line))
-			vert_shader_str += "\n" + Line;
-		vs_stream.close();
-	}
-	else {
-		printf("Could not open vertex shader!!\n");
-		return false;
-	}
-	const char* vs_str = vert_shader_str.c_str();
-
-	std::string frag_shader_str;
-	std::ifstream fs_stream("shaders/frag_shader.glsl", std::ios::in);
-	if (fs_stream.is_open()) {
-		std::string Line = "";
-		while (getline(fs_stream, Line))
-			frag_shader_str += "\n" + Line;
-		fs_stream.close();
-	}
-	else {
-		printf("Could not open fragment shader!!\n");
-		return false;
-	}
-	const char* fs_str = frag_shader_str.c_str();
-
-	GLuint vs = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vs, 1, &vs_str, NULL);
-	glCompileShader(vs);
-	GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fs, 1, &fs_str, NULL);
-	glCompileShader(fs);
-
-	shader_program = glCreateProgram();
-	glAttachShader(shader_program, fs);
-	glAttachShader(shader_program, vs);
-	glLinkProgram(shader_program);
-
-	return true;
-}
 
 int main() {
 	Logger::Init(); // We'll borrow the logger from the toolkit, but we need to initialize it
@@ -153,7 +109,7 @@ int main() {
 		0.0f, 1.0f, 0.0f,
 		0.0f, 0.0f, 1.0f
 	};
-
+	/*
 	//VBO - Vertex buffer object
 	GLuint pos_vbo = 0;
 	glGenBuffers(1, &pos_vbo);
@@ -164,10 +120,15 @@ int main() {
 	glGenBuffers(1, &color_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, color_vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
-
-	glBindBuffer(GL_ARRAY_BUFFER, pos_vbo);
-
+	*/
+	
+	VertexBuffer* posVbo = new VertexBuffer();
+	posVbo->LoadData(points, 9);
+	VertexBuffer* color_vbo = new VertexBuffer();
+	color_vbo->LoadData(colors, 9);
 	//						index, size, type, normalize?, stride, pointer
+	/*
+	glBindBuffer(GL_ARRAY_BUFFER, pos_vbo);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 
 	glBindBuffer(GL_ARRAY_BUFFER, color_vbo);
@@ -175,11 +136,48 @@ int main() {
 
 	glEnableVertexAttribArray(0);//pos
 	glEnableVertexAttribArray(1);//colors
+	*/
+	VertexArrayObject* vao = new VertexArrayObject();
+	vao->AddVertexBuffer(posVbo, {
+	{ 0, 3, GL_FLOAT, false, 0, NULL }
+		});
+	vao->AddVertexBuffer(color_vbo, {
+	{ 1, 3, GL_FLOAT, false, 0, NULL }
+		});
+	static const float interleaved[] = {
+	//   X      Y     Z     R     G      B
+		 0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 0.0f,
+		 0.5f, 0.5f, 0.5f, 0.3f, 0.2f, 0.5f,
+		-0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 0.0f,
+		 0.5f, -0.5f, 0.5f, 1.0f, 1.0f, 1.0f
+	};
 
+	VertexBuffer* interleaved_vbo = new VertexBuffer();
+	interleaved_vbo->LoadData(interleaved, 6 * 4);
+	static const uint16_t indices[] = {
+		0, 1, 2,
+		1, 3, 2
+	};
+	IndexBuffer* interleaved_ibo = new IndexBuffer();
+	interleaved_ibo->LoadData(indices, 3 * 2);
+
+	size_t stride = sizeof(float) * 6;
+	VertexArrayObject* vao2 = new VertexArrayObject();
+	vao2->AddVertexBuffer(interleaved_vbo, {
+	BufferAttribute(0, 3, GL_FLOAT, false, stride, 0),
+	BufferAttribute(1, 3, GL_FLOAT, false, stride, sizeof(float) * 3),
+		});
+	vao2->SetIndexBuffer(interleaved_ibo);
 	// Load our shaders
 
+	/*
 	if (!loadShaders())
 		return 1;
+	*/
+	Shader* shader = new Shader();
+	shader->LoadShaderPartFromFile("shaders/vertex_shader.glsl", GL_VERTEX_SHADER);
+	shader->LoadShaderPartFromFile("shaders/frag_shader.glsl", GL_FRAGMENT_SHADER);
+	shader->Link();
 
 	// GL states
 	glEnable(GL_DEPTH_TEST);
@@ -199,14 +197,24 @@ int main() {
 
 		glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+		/*
 		glUseProgram(shader_program);
 
 		glDrawArrays(GL_TRIANGLES, 0, 3);
+		*/
+		shader->Bind();
+		vao->Bind();
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+		vao2->Bind();
+		glDrawElements(GL_TRIANGLES, interleaved_ibo->GetElementCount(), interleaved_ibo->GetElementType(), nullptr);
+		vao->UnBind();
 
 		glfwSwapBuffers(window);
 	}
-
+	delete shader;
+	delete vao;
+	delete posVbo;
+	delete color_vbo;
 	// Clean up the toolkit logger so we don't leak memory
 	Logger::Uninitialize();
 	return 0;
