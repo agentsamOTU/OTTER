@@ -64,7 +64,7 @@ bool initGLFW() {
 	}
 
 	//Create a new GLFW window
-	window = glfwCreateWindow(800, 800, "INFR1350U", nullptr, nullptr);
+	window = glfwCreateWindow(800, 800, "Samuel Canonaco - 100742837", nullptr, nullptr);
 	glfwMakeContextCurrent(window);
 
 	glfwSetWindowSizeCallback(window, GlfwWindowResizedCallback);
@@ -149,17 +149,26 @@ int main() {
 		 0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 0.0f,
 		 0.5f, 0.5f, 0.5f, 0.3f, 0.2f, 0.5f,
 		-0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 0.0f,
-		 0.5f, -0.5f, 0.5f, 1.0f, 1.0f, 1.0f
+		 -0.5f, -0.5f, 0.5f, 1.0f, 1.0f, 1.0f
 	};
 
 	VertexBuffer* interleaved_vbo = new VertexBuffer();
 	interleaved_vbo->LoadData(interleaved, 6 * 4);
 	static const uint16_t indices[] = {
-		0, 1, 2,
-		1, 3, 2
+		0, 1, 2
+	};
+
+	//added indices
+	static const uint16_t indices2[] = {
+		0,2,3
 	};
 	IndexBuffer* interleaved_ibo = new IndexBuffer();
-	interleaved_ibo->LoadData(indices, 3 * 2);
+	interleaved_ibo->LoadData(indices, 3);
+
+	//second ibo by me
+	IndexBuffer* ibo_2 = new IndexBuffer();
+	ibo_2->LoadData(indices2, 3);
+
 
 	size_t stride = sizeof(float) * 6;
 	VertexArrayObject* vao2 = new VertexArrayObject();
@@ -168,6 +177,14 @@ int main() {
 	BufferAttribute(1, 3, GL_FLOAT, false, stride, sizeof(float) * 3),
 		});
 	vao2->SetIndexBuffer(interleaved_ibo);
+
+	//third vao object my me
+	VertexArrayObject* vao3 = new VertexArrayObject();
+	vao3->AddVertexBuffer(interleaved_vbo, {
+	BufferAttribute(0, 3, GL_FLOAT, false, stride, 0),
+	BufferAttribute(1, 3, GL_FLOAT, false, stride, sizeof(float) * 3),
+		});
+	vao3->SetIndexBuffer(ibo_2);;
 	// Load our shaders
 
 	/*
@@ -178,6 +195,12 @@ int main() {
 	shader->LoadShaderPartFromFile("shaders/vertex_shader.glsl", GL_VERTEX_SHADER);
 	shader->LoadShaderPartFromFile("shaders/frag_shader.glsl", GL_FRAGMENT_SHADER);
 	shader->Link();
+
+	//second shader object
+	Shader* shader2 = new Shader();
+	shader2->LoadShaderPartFromFile("shaders/vertex_shader.glsl", GL_VERTEX_SHADER);
+	shader2->LoadShaderPartFromFile("shaders/frag_shader2.glsl", GL_FRAGMENT_SHADER);
+	shader2->Link();
 
 	// GL states
 	glEnable(GL_DEPTH_TEST);
@@ -203,11 +226,21 @@ int main() {
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 		*/
 		shader->Bind();
-		vao->Bind();
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		//vao->Bind();
+		//glDrawArrays(GL_TRIANGLES, 0, 3);
 		vao2->Bind();
 		glDrawElements(GL_TRIANGLES, interleaved_ibo->GetElementCount(), interleaved_ibo->GetElementType(), nullptr);
-		vao->UnBind();
+		//vao->UnBind();
+		vao2->UnBind();
+		shader->UnBind();
+
+		// second set of vertices rendered with second shader
+		shader2->Bind();
+		vao3->Bind();
+		glDrawElements(GL_TRIANGLES, ibo_2->GetElementCount(), ibo_2->GetElementType(), nullptr);
+		vao3->UnBind();
+		shader2->UnBind();
+
 
 		glfwSwapBuffers(window);
 	}
