@@ -94,7 +94,6 @@ public:
 
 		return result;
 	}
-
 	
 	/// <summary>
 	/// Gets a pointer to the underlying vertex data in the mesh, valid only

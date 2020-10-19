@@ -20,7 +20,10 @@
 #include "Camera.h"
 
 #define LOG_GL_NOTIFICATIONS
-
+extern "C" {
+	__declspec(dllexport) unsigned long NvOptimusEnablement = 0x01;
+	__declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 0x01;
+}
 /*
 	Handles debug messages from OpenGL
 	https://www.khronos.org/opengl/wiki/Debug_Output#Message_Components
