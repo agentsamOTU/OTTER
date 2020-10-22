@@ -207,7 +207,7 @@ int main() {
 		BufferAttribute(0, 3, GL_FLOAT, false, 0, NULL)
 		});
 	vaoForDemo->SetIndexBuffer(iboForDemo);
-
+	
 	
 	// Load our shaders
 	Shader::sptr shader = Shader::Create();
