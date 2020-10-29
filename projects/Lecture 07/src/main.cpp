@@ -12,17 +12,19 @@
 #include <stb_image.h>
 
 unsigned char* image;
+
 int width, height;
 
 void loadImage() {
 	int channels;
 	stbi_set_flip_vertically_on_load(true);
 
-	image = stbi_load("box.bmp", &width, &height, &channels, 0);
+	image = stbi_load("multiTex.jpg", &width, &height, &channels, 0);
 
 	if (image)
 		std::cout << "Image loaded:" << width << " x " << height << std::endl;
 	else std::cout << "Failed to load image" << std::endl;
+
 }
 
 GLFWwindow* window;
@@ -194,11 +196,23 @@ int main() {
 	//lecture 07
 	static const GLfloat uv[] = {
 		0.0f, 0.0f,
+		0.5f, 0.0f,
+		0.0f, 0.5f,//tri 1 face 1
+		0.5f, 0.0f,
+		0.5f, 0.5f,
+		0.0f, 0.5f,//tri 2 face 1
+		0.5f, 0.0f,
 		1.0f, 0.0f,
-		0.0f, 1.0f,
+		0.5f, 0.5f,//tri1 face right
 		1.0f, 0.0f,
-		1.0f, 1.0f,
-		0.0f, 1.0f
+		1.0f, 0.5f,
+		0.5f, 0.5f,//tri2 faceright
+		0.0f, 0.5f,
+		0.5f, 0.5f,
+		0.0f, 1.0f,//tri1 faceleft
+		0.5f, 0.5f,
+		0.5f, 1.0f,
+		0.0f, 1.0f//tri2faceleft
 	};
 	// Lecture 5
 	GLfloat cameraPos[] = { 0.0f, 0.0f, 3.0f };
