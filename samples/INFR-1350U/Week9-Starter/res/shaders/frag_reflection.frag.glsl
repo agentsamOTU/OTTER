@@ -14,5 +14,12 @@ out vec4 frag_color;
 
 // https://learnopengl.com/Advanced-Lighting/Advanced-Lighting
 void main() {
-	frag_color = vec4(1, 0, 0, 1.0);
+	// Calculate the reflected normal
+	vec3 N = normalize(inNormal);
+	vec3 toEye = normalize(inPos - u_CamPos);
+	vec3 reflected = reflect(toEye, N);
+	// Look up the environment texture
+	vec3 environment = texture(s_Environment, u_EnvironmentRotation * reflected).rgb;
+	// For now just return the result, fully reflective!
+	frag_color = vec4(environment, 1.0);
 }
